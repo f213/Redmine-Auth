@@ -1,73 +1,81 @@
-Redmine-Auth
+NAME
+    Redmine::Auth - Авторизуй своих юзеров через
+    редмайн! This is a private ad-hoc module, tested againts Redmine
+    1.4
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+VERSION
+    Version 0.01
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+SYNOPSIS
+    Модуль нужен для авторизации
+    пользователей на основе данных из
+    редмайна. Используются данные о
+    логинах\паролях и о членстве в
+    проектах. Модуль тесно работает с
+    Redmine::KPI, используя такие элементы как
+    Element::User или как Query::Project. Поддерживает
+    точно такую же инициализацию как и
+    Redmine::KPI, то есть если ему скормить
+    настройки доступа к Redmine, то дальше в
+    коде можо плясать от него так же, как и
+    от Redmine::KPI. Можно и не скармливать, тогда
+    он будет просто работать, но при любой
+    попытке получить данные, которые
+    получает User или Query::Project, он упадет. TODO -
+    отвязать от Redmine::KPI если кому-то
+    понадобится
 
+        use Redmine::Auth;
 
-INSTALLATION
+        my $auth    = new Redmine::Auth;
+        $auth->dsn('DBI:mysql:dbname=redmine_test;host=localhost');
+        $auth->dbUser('user');
+        $auth->dbPass('pass');
 
-To install this module, run the following commands:
+        $auth->login('fedor');
+        $auth->pass('123');
 
-	perl Makefile.PL
-	make
-	make test
-	make install
+        say "fedor:123 works!' if $auth->auth;
 
-SUPPORT AND DOCUMENTATION
+        say "fedor's name is " $auth->user->param('name');
 
-After installing, you can find documentation for this module with the
-perldoc command.
+        say "fedor is manager of " . $auth->managerOf->count . 'projects';
+        say "end especialy of project with id 1" if $auth->managerOf(1);
 
-    perldoc Redmine::Auth
+EXPORT
+    none
 
-You can also look for information at:
+SUBROUTINES/METHODS
+  init
+    Method needed for Badger::Base. Pod::Coverage - не ругайся
+    пожалуйста!
 
-    RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Redmine-Auth
+  auth
+    Check user credentials. Returns 0 if they are bad.
 
-    AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/Redmine-Auth
+  managerOf
+            say 'User is manager of project with id 1' if($auth->managerOf(1));
+            say 'User is manager of ' . $auth->managerOf->count . ' projects';
 
-    CPAN Ratings
-        http://cpanratings.perl.org/d/Redmine-Auth
+    Returns bool if a numeric project id is given.
 
-    Search CPAN
-        http://search.cpan.org/dist/Redmine-Auth/
+    Otherwise, returns list of projects, in wich users role is 'manager'.
 
+    Setting Redmine::KPI fetch parameters like 'authKey' and 'url' during
+    class config will give one the ability to search by project names and
+    other params. Lurk for Redmine::KPI::Query::Projects documentation.
+
+AUTHOR
+    Fedor A Borshev, "<fedor at shogo.ru>"
+
+BUGS
+    Please report any bugs or feature requests to "<fedor at shogo.ru>"
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+        perldoc Redmine::Auth
 
 LICENSE AND COPYRIGHT
-
-Copyright (C) 2013 Fedor A Borshev
-
-This program is distributed under the MIT (X11) License:
-L<http://www.opensource.org/licenses/mit-license.php>
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+    Copyright 2013 Fedor A Borshev, shogo.ru
 
