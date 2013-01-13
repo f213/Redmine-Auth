@@ -89,7 +89,7 @@ sub auth
 
 	return 1 if $self->authIsOk;
 	
-	my $res = $self->_dbh->prepare('SELECT id, login, firstname, lastname, mail, hashed_password, salt FROM users WHERE login = ?');
+	my $res = $self->_dbh->prepare('SELECT id, login, admin, firstname, lastname, mail, hashed_password, salt FROM users WHERE login = ?');
 
 	$res->execute($self->login);
 
@@ -107,6 +107,7 @@ sub auth
 				lastName	=> $userData->{lastname},
 				login		=> $userData->{login},
 				mail		=> $userData->{mail},
+				admin		=> $userData->{admin},
 				dryRun		=> 1,
 				passConfigParams($self->{config}), 
 			)
@@ -142,7 +143,8 @@ sub managerOf
 sub _isManagerOf
 {
 	my $self = shift;
-
+	
+	return 1 if $self->user->param('admin');
 	return 1 if $self->_projectListAsManager->find(shift);
 	0;
 }
@@ -162,15 +164,22 @@ sub _projectList
 	return $self->{prjLists}{$listName} if exists $self->{lists}{$listName};
 
 	my @prjIds;
-	
-	my $res = $self->_dbh->prepare('SELECT DISTINCT (members.project_id) AS prj_id
-		FROM `members` , `member_roles`
-		WHERE members.user_id = ?
-		AND member_roles.role_id = ?
-		AND member_roles.member_id = members.id;
-	');
-	
-	$res->execute($self->user->param('id'), $roleId);
+	my $res;
+	if(not $self->user->param('admin'))
+	{
+		$res = $self->_dbh->prepare('SELECT DISTINCT (members.project_id) AS prj_id
+			FROM `members` , `member_roles`
+			WHERE members.user_id = ?
+			AND member_roles.role_id = ?
+			AND member_roles.member_id = members.id;
+		');
+		$res->execute($self->user->param('id'), $roleId);
+	}
+	else
+	{
+		$res = $self->_dbh->prepare('SELECT DISTINCT(id) AS prj_id FROM projects');
+		$res->execute;
+	}
 
 	while (my $row = $res->fetchrow_hashref)
 	{
